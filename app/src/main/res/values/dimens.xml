@@ -1,0 +1,11 @@
+<resources>
+    <dimen name="fab_margin">16dp</dimen>
+	<dimen name="profile_width">116sp</dimen>
+    <dimen name="profile_height">116sp</dimen>
+	
+	<dimen name="nav_header_margin_start">26sp</dimen>
+    <dimen name="nav_header_vertical_padding">20sp</dimen>
+    <dimen name="nav_header_left_padding">28sp</dimen>
+    <dimen name="nav_header_right_padding">10sp</dimen>
+    <dimen name="nav_header_height">150sp</dimen>
+</resources>

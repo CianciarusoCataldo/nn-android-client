@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory
+        android:summary="@string/list_prefs_summ_appearance"
+        android:title="Appearance">
+
+        <SwitchPreference
+            android:defaultValue="true"
+            android:key="animation_pref"
+            android:summary="@string/list_prefs_summ_animations"
+            android:title="Enable Animations" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="Connection">
+
+        <com.cianciaruso_cataldo.cnn.image_analyzer.widget.CustomEditTextPreference
+            android:defaultValue="192.168.1.15"
+            android:dialogTitle="@string/list_prefs_summ_host"
+            android:key="@string/list_prefs_host"
+            android:summary="@string/list_prefs_summ_host"
+            android:textColor="@android:color/white"
+            android:title="Server IP" />
+
+        <com.cianciaruso_cataldo.cnn.image_analyzer.widget.CustomEditTextPreference
+            android:defaultValue="8081"
+            android:inputType="number"
+            android:key="@string/list_prefs_port"
+            android:summary="@string/list_prefs_summ_port"
+            android:title="Server Port"
+            android:dialogTitle="@string/list_prefs_summ_port"/>
+
+    </PreferenceCategory>
+
+</PreferenceScreen>
