@@ -1,6 +1,6 @@
 <resources>
-    <string name="app_name">Cnn Image Analyzer - Mobile</string>
-    <string name="toolbar_title">Cnn Image Analyzer</string>
+    <string name="app_name">NN Image Analyzer - Mobile</string>
+    <string name="toolbar_title">NN Image Analyzer</string>
     <string name="action_settings">Settings</string>
     <string name="nav_settings">Settings</string>
     <string name="nav_about">Info</string>
@@ -23,4 +23,10 @@
     <string name="gallery_option">From gallery</string>
     <string name="camera_option">From camera</string>
     <string name="cancel">Cancel</string>
+
+    <string name="all">Both</string>
+    <string name="face">Faces</string>
+    <string name="obj">Objects</string>
+    <string name="welcome"> Welcome to NN Image Analyzer Client ! </string>
+    <string name="options">Please, select a detection mode, then select an image.</string>
 </resources>

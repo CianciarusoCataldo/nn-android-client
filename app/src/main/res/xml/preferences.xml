@@ -15,7 +15,7 @@
     <PreferenceCategory android:title="Connection">
 
         <com.cianciaruso_cataldo.cnn.image_analyzer.widget.CustomEditTextPreference
-            android:defaultValue="192.168.1.15"
+            android:defaultValue="https://nn-image-analyzer.herokuapp.com"
             android:dialogTitle="@string/list_prefs_summ_host"
             android:key="@string/list_prefs_host"
             android:summary="@string/list_prefs_summ_host"
@@ -23,7 +23,7 @@
             android:title="Server IP" />
 
         <com.cianciaruso_cataldo.cnn.image_analyzer.widget.CustomEditTextPreference
-            android:defaultValue="8081"
+            android:defaultValue="443"
             android:inputType="number"
             android:key="@string/list_prefs_port"
             android:summary="@string/list_prefs_summ_port"

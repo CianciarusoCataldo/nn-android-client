@@ -32,6 +32,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center|center_horizontal|center_vertical"
+                    android:text="@string/toolbar_title"
+                    android:textColor="#A3FFFFFF"
                     android:textSize="26sp" />
 
 

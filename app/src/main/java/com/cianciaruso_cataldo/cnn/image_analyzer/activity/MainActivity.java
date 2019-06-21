@@ -73,8 +73,8 @@ import retrofit2.converter.scalars.ScalarsConverterFactory;
 
 public class MainActivity extends AppCompatActivity {
 
-    public static String server_address = "http:/192.168.1.15";
-    public static int port = 8081;
+    public static String server_address = "https://nn-image-analyzer.herokuapp.com";
+    public static int port = 443;
     private static final int GALLERY = 100;
     private static final int CAMERA = 200;
 
@@ -84,7 +84,8 @@ public class MainActivity extends AppCompatActivity {
     private LinearLayout parent;
     private DrawerLayout drawer;
     private String pictureImagePath = "";
-    AlertDialog.Builder pictureDialog;
+    private AlertDialog.Builder pictureDialog;
+    private String choice = "all";
 
 
     private static HashMap<String, String> types = new HashMap<String, String>() {{
@@ -104,8 +105,8 @@ public class MainActivity extends AppCompatActivity {
                 AsyncTask.execute(() -> {
                     Preference settings = PowerPreference.getDefaultFile();
                     SettingsActivity.is_animations_enabled = settings.getBoolean("animations", true);
-                    server_address = settings.getString("address", "https://nn-image-analyzer.herokuapp.com/");
-                    port = settings.getInt("port", 8081);
+                    server_address = settings.getString("address", "https://nn-image-analyzer.herokuapp.com");
+                    port = settings.getInt("port", 443);
                     Log.i("ADDRESS", server_address + ":" + port);
 
                     final Integer[] icons = new Integer[]{android.R.drawable.ic_menu_gallery, android.R.drawable.ic_menu_camera, android.R.drawable.ic_menu_close_clear_cancel};
@@ -176,7 +177,6 @@ public class MainActivity extends AppCompatActivity {
 
         drawer.addDrawerListener(actionBarDrawerToggle);
         actionBarDrawerToggle.syncState();
-        ((TextView) toolbar.findViewById(R.id.toolbar_title)).setText(R.string.toolbar_title);
         drawer.findViewById(R.id.btn_select_image).setOnClickListener((View v) -> pictureDialog.show());
 
         runOnUiThread(() -> {
@@ -277,8 +277,7 @@ public class MainActivity extends AppCompatActivity {
     private void uploadImage(byte[] imageBytes) {
         runOnUiThread(() -> loading.setVisibility(View.VISIBLE));
 
-        OkHttpClient okHttpClient = new OkHttpClient.Builder()
-                .connectTimeout(20, TimeUnit.SECONDS)
+        OkHttpClient client = new OkHttpClient.Builder().connectTimeout(20, TimeUnit.SECONDS)
                 .writeTimeout(30, TimeUnit.SECONDS)
                 .readTimeout(20, TimeUnit.SECONDS)
                 .retryOnConnectionFailure(true)
@@ -287,14 +286,14 @@ public class MainActivity extends AppCompatActivity {
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(server_address + ":" + port)
                 .addConverterFactory(ScalarsConverterFactory.create())
-                .client(okHttpClient)
+                .client(client)
                 .build();
 
         RetrofitInterface retrofitInterface = retrofit.create(RetrofitInterface.class);
 
         RequestBody requestFile = RequestBody.create(MediaType.parse("image/jpeg"), imageBytes);
         MultipartBody.Part body = MultipartBody.Part.createFormData("image", "image.jpg", requestFile);
-        Call<String> call = retrofitInterface.uploadImage(body);
+        Call<String> call = retrofitInterface.uploadImage(body, choice);
 
         call.enqueue(new Callback<String>() {
             @Override
@@ -321,7 +320,6 @@ public class MainActivity extends AppCompatActivity {
 
                     });
                 } else {
-                    //response.raw().close();
                     Toasty.error(MainActivity.this, "Server connection error. Try again", Toast.LENGTH_SHORT, true).show();
                     loading.setVisibility(View.GONE);
                 }
@@ -339,75 +337,99 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    @SuppressLint("CheckResult")
+    public void parseFaces(String txt, Point screen_size) {
+        Log.i("RESULT",txt);
+        String result = txt.replace("FACE", "");
+        if (result.trim().isEmpty()) {
+            addSeparator("No Faces<br>Detected");
+            return;
+        }
+        String[] faces = result.split(",");
+        int[] coordinates = new int[4];
+        addSeparator("Faces");
+
+        for (String face : faces) {
+            String[] psplit = face.split("-");
+            String[] coords = psplit[1].split(" ");
+            coordinates[0] = Integer.parseInt(coords[0]);
+            coordinates[1] = Integer.parseInt(coords[1]);
+            coordinates[2] = Integer.parseInt(coords[2]);
+            coordinates[3] = Integer.parseInt(coords[3]);
+            String[] temp = psplit[3].split(" ");
+
+            if (psplit[2].contains("undefined")) {
+                psplit[2] = psplit[2].replace("undefined", "");
+            }
+
+            result = "<br><p>" + HTMLFormatter.getWhiteSpaces(1) + HTMLFormatter.getColoredText("Person", HTMLFormatter.HTMLColor.red) + "</p><br>" +
+                    "<p>" + HTMLFormatter.getWhiteSpaces(5) + HTMLFormatter.getColoredText("Gender", HTMLFormatter.HTMLColor.yellow) + " : " + types.get(psplit[0]) + "</p>" +
+                    "<p>" + HTMLFormatter.getWhiteSpaces(8) + HTMLFormatter.getColoredText("Age", HTMLFormatter.HTMLColor.yellow) + " : " + psplit[2] + "</p><br>" +
+                    "<p>" + HTMLFormatter.getWhiteSpaces(3) + HTMLFormatter.getColoredText("Emotions", HTMLFormatter.HTMLColor.blue) + "</p><br>" +
+                    "<p>" + HTMLFormatter.getWhiteSpaces(6) + HTMLFormatter.getColoredText("Angry", HTMLFormatter.HTMLColor.yellow) + " : " + temp[0] + "</p>" +
+                    "<p>" + HTMLFormatter.getWhiteSpaces(4) + HTMLFormatter.getColoredText(" Disgust", HTMLFormatter.HTMLColor.yellow) + " : " + temp[1] + "</p>" +
+                    "<p>" + HTMLFormatter.getWhiteSpaces(7) + HTMLFormatter.getColoredText(" Fear", HTMLFormatter.HTMLColor.yellow) + " : " + temp[2] + "</p>" +
+                    "<p>" + HTMLFormatter.getWhiteSpaces(6) + HTMLFormatter.getColoredText("Happy", HTMLFormatter.HTMLColor.yellow) + " : " + temp[3] + "</p>" +
+                    "<p>" + HTMLFormatter.getWhiteSpaces(8) + HTMLFormatter.getColoredText("Sad", HTMLFormatter.HTMLColor.yellow) + " : " + temp[4] + "</p>" +
+                    "<p>" + HTMLFormatter.getWhiteSpaces(4) + HTMLFormatter.getColoredText("Surprise", HTMLFormatter.HTMLColor.yellow) + " : " + temp[5] + "</p>" +
+                    "<p>" + HTMLFormatter.getWhiteSpaces(5) + HTMLFormatter.getColoredText("Neutral", HTMLFormatter.HTMLColor.yellow) + " : " + temp[6] + "</p>";
+            addTile(result, coordinates, screen_size);
+        }
+    }
+
+    public void parseObjects(String txt, Point screen_size) {
+        String result = txt.replace("OBJ", "");
+        if (result.trim().isEmpty()) {
+            addSeparator("No Objects<br>Detected");
+            return;
+        }
+        int[] coordinates = new int[4];
+        addSeparator("Objects");
+        String[] objects = result.split(",");
+
+        for (String object : objects) {
+            String[] splitOb = object.split("-");
+            String[] tcoord = splitOb[1].split(" ");
+            coordinates[0] = Integer.parseInt(tcoord[0]);
+            coordinates[1] = Integer.parseInt(tcoord[1]);
+            coordinates[2] = Integer.parseInt(tcoord[2]);
+            coordinates[3] = Integer.parseInt(tcoord[3]);
+
+            result = "<br><p>" + HTMLFormatter.getWhiteSpaces(4) + HTMLFormatter.getColoredText("Object", HTMLFormatter.HTMLColor.red) + "</p><br>" +
+                    "<p>" + HTMLFormatter.getWhiteSpaces(4) + HTMLFormatter.getColoredText("Type", HTMLFormatter.HTMLColor.yellow) + " : " + splitOb[0] + "</p><br><br><br><br><br>";
+            addTile(result, coordinates, screen_size);
+        }
+    }
+
     public void setViews(String txt) {
         Point screen_size = new Point();
         getWindowManager().getDefaultDisplay().getSize(screen_size);
-        String[] split = txt.split("FACE");
-        boolean noFace = false, noObjects = false;
-
-        String[] faces = new String[0], objects = new String[0];
-
-        try {
-            faces = split[1].split(",");
-        } catch (ArrayIndexOutOfBoundsException ex) {
-            noFace = true;
-        }
-
-        try {
-            objects = split[0].replace("OBJ", "").split(",");
-        } catch (ArrayIndexOutOfBoundsException ex) {
-            noObjects = true;
-        }
-        String result;
-        int i;
-        int[] coordinates = new int[4];
-
-        //Parse Faces
-        if (!noFace) {
-            addSeparator("Faces");
-            for (i = 0; i < faces.length; i++) {
-                String[] psplit = faces[i].split("-");
-                String[] coords = psplit[1].split(" ");
-                coordinates[0] = Integer.parseInt(coords[0]);
-                coordinates[1] = Integer.parseInt(coords[1]);
-                coordinates[2] = Integer.parseInt(coords[2]);
-                coordinates[3] = Integer.parseInt(coords[3]);
-                String[] temp = psplit[3].split(" ");
-
-                if(psplit[2].contains("undefined")){
-                    psplit[2]=psplit[2].replace("undefined","");
+        parent.removeAllViews();
+        switch (choice.toLowerCase()) {
+            case "face": {
+                parseFaces(txt, screen_size);
+            }
+            break;
+            case "objects": {
+                parseObjects(txt, screen_size);
+            }
+            break;
+            default: {
+                String[] split = txt.split("FACE");
+                try {
+                    parseFaces(split[1], screen_size);
+                } catch (ArrayIndexOutOfBoundsException e) {
+                    e.printStackTrace();
+                    addSeparator("No Faces<br>Detected");
                 }
 
-                result = "<br><p>" + HTMLFormatter.getWhiteSpaces(1) + HTMLFormatter.getColoredText("Person", HTMLFormatter.HTMLColor.red) + "</p><br>" +
-                        "<p>" + HTMLFormatter.getWhiteSpaces(5) + HTMLFormatter.getColoredText("Gender", HTMLFormatter.HTMLColor.yellow) + " : " + types.get(psplit[0]) + "</p>" +
-                        "<p>" + HTMLFormatter.getWhiteSpaces(8) + HTMLFormatter.getColoredText("Age", HTMLFormatter.HTMLColor.yellow) + " : " + psplit[2] + "</p><br>" +
-                        "<p>" + HTMLFormatter.getWhiteSpaces(3) + HTMLFormatter.getColoredText("Emotions", HTMLFormatter.HTMLColor.blue) + "</p><br>" +
-                        "<p>" + HTMLFormatter.getWhiteSpaces(6) + HTMLFormatter.getColoredText("Angry", HTMLFormatter.HTMLColor.yellow) + " : " + temp[0] + "</p>" +
-                        "<p>" + HTMLFormatter.getWhiteSpaces(4) + HTMLFormatter.getColoredText(" Disgust", HTMLFormatter.HTMLColor.yellow) + " : " + temp[1] + "</p>" +
-                        "<p>" + HTMLFormatter.getWhiteSpaces(7) + HTMLFormatter.getColoredText(" Fear", HTMLFormatter.HTMLColor.yellow) + " : " + temp[2] + "</p>" +
-                        "<p>" + HTMLFormatter.getWhiteSpaces(6) + HTMLFormatter.getColoredText("Happy", HTMLFormatter.HTMLColor.yellow) + " : " + temp[3] + "</p>" +
-                        "<p>" + HTMLFormatter.getWhiteSpaces(8) + HTMLFormatter.getColoredText("Sad", HTMLFormatter.HTMLColor.yellow) + " : " + temp[4] + "</p>" +
-                        "<p>" + HTMLFormatter.getWhiteSpaces(4) + HTMLFormatter.getColoredText("Surprise", HTMLFormatter.HTMLColor.yellow) + " : " + temp[5] + "</p>" +
-                        "<p>" + HTMLFormatter.getWhiteSpaces(5) + HTMLFormatter.getColoredText("Neutral", HTMLFormatter.HTMLColor.yellow) + " : " + temp[6] + "</p>";
-                addTile(result, coordinates, screen_size);
+                try {
+                    parseObjects(split[0], screen_size);
+                } catch (ArrayIndexOutOfBoundsException e) {
+                    addSeparator("No Objects<br>Detected");
+                }
             }
-        }
-
-        //Parse Objects
-        if (!noObjects && !objects[0].equals("")) {
-            addSeparator("Objects");
-            for (i = 0; i < objects.length; i++) {
-                String[] splitOb = objects[i].split("-");
-                String[] tcoord = splitOb[1].split(" ");
-                coordinates[0] = Integer.parseInt(tcoord[0]);
-                coordinates[1] = Integer.parseInt(tcoord[1]);
-                coordinates[2] = Integer.parseInt(tcoord[2]);
-                coordinates[3] = Integer.parseInt(tcoord[3]);
-
-                result = "<br><p>" + HTMLFormatter.getWhiteSpaces(4) + HTMLFormatter.getColoredText("Object", HTMLFormatter.HTMLColor.red) + "</p><br>" +
-                        "<p>" + HTMLFormatter.getWhiteSpaces(4) + HTMLFormatter.getColoredText("Type", HTMLFormatter.HTMLColor.yellow) + " : " + splitOb[0] + "</p><br><br><br><br><br>";
-                addTile(result, coordinates, screen_size);
-            }
+            break;
         }
     }
 
@@ -477,7 +499,7 @@ public class MainActivity extends AppCompatActivity {
         share.setOnClickListener((View view) -> AsyncTask.execute(() ->
                 FileUtil.shareView(result_container))
         );
-        share_params.gravity=Gravity.CENTER;
+        share_params.gravity = Gravity.CENTER;
         share.setLayoutParams(share_params);
 
         result_container.addView(display);
@@ -511,7 +533,7 @@ public class MainActivity extends AppCompatActivity {
         info_box.setTextSize(42);
         info_box.setTypeface(info_box.getTypeface(), Typeface.BOLD);
 
-        info_box.setText(Html.fromHtml(HTMLFormatter.getColoredText("<br>" + title, HTMLFormatter.HTMLColor.white), Html.FROM_HTML_MODE_COMPACT));
+        info_box.setText(Html.fromHtml(HTMLFormatter.getColoredText("<br>" + title + "<br>", HTMLFormatter.HTMLColor.white), Html.FROM_HTML_MODE_COMPACT));
         info_box.setGravity(Gravity.CENTER);
         info_box.setTextColor(Color.WHITE);
         info_box.setLayoutParams(text_params);
@@ -568,6 +590,20 @@ public class MainActivity extends AppCompatActivity {
             startActivityForResult(intent, GALLERY);
         } catch (ActivityNotFoundException e) {
             e.printStackTrace();
+        }
+    }
+
+    public void chooseMode(View view) {
+        int id = view.getId();
+        switch (id) {
+            case R.id.faces_only:
+                choice = "face";
+                break;
+            case R.id.objects_only:
+                choice = "objects";
+                break;
+            default:
+                choice = "all";
         }
     }
 }

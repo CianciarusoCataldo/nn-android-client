@@ -40,6 +40,87 @@
                 android:visibility="visible">
 
 
+                <TextView
+                    android:id="@+id/welcome_text"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginBottom="10dp"
+                    android:text="@string/welcome"
+                    android:textAlignment="center"
+                    android:textColor="@color/colorAccent"
+                    android:textSize="24sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/description"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginEnd="10dp"
+                    android:layout_marginBottom="20dp"
+                    android:text="@string/options"
+                    android:textAlignment="center"
+                    android:textColor="#FFFFFF"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+
+                <View
+                    android:id="@+id/divider"
+                    android:layout_width="match_parent"
+                    android:layout_height="5dp"
+                    android:background="#3D5AFE" />
+
+                <RadioGroup
+                    android:id="@+id/choices"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:gravity="center"
+                    android:checkedButton="@id/both"
+                    android:orientation="horizontal">
+
+                    <RadioButton
+                        android:id="@+id/both"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
+                        android:buttonTint="#FFFFFF"
+                        android:onClick="chooseMode"
+                        android:text="@string/all"
+                        android:textColor="#FFFFFF"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:typeface="monospace" />
+
+                    <RadioButton
+                        android:id="@+id/faces_only"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
+                        android:layout_marginEnd="10dp"
+                        android:buttonTint="#FFFFFF"
+                        android:onClick="chooseMode"
+                        android:text="@string/face"
+                        android:textColor="#FFFFFF"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:typeface="monospace" />
+
+                    <RadioButton
+                        android:id="@+id/objects_only"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="10dp"
+                        android:buttonTint="#FFFFFF"
+                        android:onClick="chooseMode"
+                        android:text="@string/obj"
+                        android:textColor="#FFFFFF"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:typeface="monospace" />
+                </RadioGroup>
+
                 <Button
                     android:id="@+id/btn_select_image"
                     style="@android:style/Widget.Button.Toggle"

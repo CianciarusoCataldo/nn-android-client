@@ -23,8 +23,6 @@ public class SettingsFragment extends PreferenceFragment {
         super.onCreate(savedInstanceState);
         addPreferencesFromResource(R.xml.preferences);
         Context context = getActivity().getApplicationContext();
-        PreferenceManager.setDefaultValues(context, R.xml.preferences, false);
-
         Preference preference = PowerPreference.getDefaultFile();
 
         String animationsPref = getString(R.string.list_prefs_animations);
@@ -66,7 +64,7 @@ public class SettingsFragment extends PreferenceFragment {
             }
 
             preference.put("port", Integer.parseInt((String) newValue));
-            MainActivity.port = (int) Integer.parseInt((String) newValue);
+            MainActivity.port = Integer.parseInt((String) newValue);
             port.setSummary(getString(R.string.list_prefs_summ_port) + "\nActual : " + MainActivity.port);
             return true;
 

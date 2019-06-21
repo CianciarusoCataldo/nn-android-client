@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/ImageUpload.iml" filepath="$PROJECT_DIR$/ImageUpload.iml" />
+      <module fileurl="file://$PROJECT_DIR$/NN client.iml" filepath="$PROJECT_DIR$/NN client.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
     </modules>
   </component>
