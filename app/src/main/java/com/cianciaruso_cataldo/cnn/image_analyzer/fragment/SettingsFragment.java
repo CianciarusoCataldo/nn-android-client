@@ -1,6 +1,5 @@
 package com.cianciaruso_cataldo.cnn.image_analyzer.fragment;
 
-import android.content.Context;
 import android.os.Bundle;
 import android.preference.PreferenceFragment;
 import android.preference.SwitchPreference;
@@ -20,7 +19,6 @@ public class SettingsFragment extends PreferenceFragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         addPreferencesFromResource(R.xml.preferences);
-        Context context = getActivity().getApplicationContext();
         Preference preference = PowerPreference.getDefaultFile();
 
         String animationsPref = getString(R.string.list_prefs_animations);

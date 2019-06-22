@@ -108,7 +108,6 @@ public class MainActivity extends AppCompatActivity {
                     Preference settings = PowerPreference.getDefaultFile();
                     SettingsActivity.is_animations_enabled = settings.getBoolean("animations", true);
                     serverList.addAll(Arrays.asList(settings.getString("address", "https://nn-image-analyzer.herokuapp.com;").split(";")));
-                    Log.i("ADDRESS N", serverList.size() + "");
 
                     final Integer[] icons = new Integer[]{android.R.drawable.ic_menu_gallery, android.R.drawable.ic_menu_camera, android.R.drawable.ic_menu_close_clear_cancel};
                     String[] items = {
