@@ -22,14 +22,6 @@
             android:textColor="@android:color/white"
             android:title="Server IP" />
 
-        <com.cianciaruso_cataldo.cnn.image_analyzer.widget.CustomEditTextPreference
-            android:defaultValue="443"
-            android:inputType="number"
-            android:key="@string/list_prefs_port"
-            android:summary="@string/list_prefs_summ_port"
-            android:title="Server Port"
-            android:dialogTitle="@string/list_prefs_summ_port"/>
-
     </PreferenceCategory>
 
 </PreferenceScreen>

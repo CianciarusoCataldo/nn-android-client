@@ -7,12 +7,10 @@
 
     <string name="list_prefs_animations">animation_pref</string>
     <string name="list_prefs_host">host_pref</string>
-    <string name="list_prefs_port">port_pref</string>
 
     <string name="list_prefs_summ_appearance">Customize user interface</string>
     <string name="list_prefs_summ_animations">Enable for better user experience, disable to save battery power</string>
-    <string name="list_prefs_summ_host">Set Server address</string>
-    <string name="list_prefs_summ_port">Set Server port</string>
+    <string name="list_prefs_summ_host">Set server address. You can specify a list of address, separated with \'\' ; \'\'. If the client fails to connect to one of them, it will try to connect to the next, if there is one.\n\nActual server list :\n\n</string>
 
     <string name="openDrawer">open_drawer</string>
     <string name="closeDrawer">close_drawer</string>

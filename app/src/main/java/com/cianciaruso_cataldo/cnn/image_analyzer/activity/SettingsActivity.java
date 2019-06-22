@@ -6,6 +6,7 @@ import android.support.v7.app.AppCompatActivity;
 import com.cianciaruso_cataldo.cnn.image_analyzer.fragment.SettingsFragment;
 
 
+
 public class SettingsActivity extends AppCompatActivity {
 
     public static boolean is_animations_enabled= true;

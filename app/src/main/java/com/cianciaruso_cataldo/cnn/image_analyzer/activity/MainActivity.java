@@ -56,6 +56,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Objects;
@@ -73,10 +75,9 @@ import retrofit2.converter.scalars.ScalarsConverterFactory;
 
 public class MainActivity extends AppCompatActivity {
 
-    public static String server_address = "https://nn-image-analyzer.herokuapp.com";
-    public static int port = 443;
     private static final int GALLERY = 100;
     private static final int CAMERA = 200;
+    public static ArrayList<String> serverList = new ArrayList<>();
 
     private ProgressBar loading;
     private Bitmap img;
@@ -86,9 +87,10 @@ public class MainActivity extends AppCompatActivity {
     private String pictureImagePath = "";
     private AlertDialog.Builder pictureDialog;
     private String choice = "all";
+    private Toast mainToast;
 
 
-    private static HashMap<String, String> types = new HashMap<String, String>() {{
+    private HashMap<String, String> types = new HashMap<String, String>() {{
         put("w", "woman");
         put("m", "man");
         put("u", "undefined");
@@ -105,9 +107,8 @@ public class MainActivity extends AppCompatActivity {
                 AsyncTask.execute(() -> {
                     Preference settings = PowerPreference.getDefaultFile();
                     SettingsActivity.is_animations_enabled = settings.getBoolean("animations", true);
-                    server_address = settings.getString("address", "https://nn-image-analyzer.herokuapp.com");
-                    port = settings.getInt("port", 443);
-                    Log.i("ADDRESS", server_address + ":" + port);
+                    serverList.addAll(Arrays.asList(settings.getString("address", "https://nn-image-analyzer.herokuapp.com;").split(";")));
+                    Log.i("ADDRESS N", serverList.size() + "");
 
                     final Integer[] icons = new Integer[]{android.R.drawable.ic_menu_gallery, android.R.drawable.ic_menu_camera, android.R.drawable.ic_menu_close_clear_cancel};
                     String[] items = {
@@ -180,6 +181,7 @@ public class MainActivity extends AppCompatActivity {
         drawer.findViewById(R.id.btn_select_image).setOnClickListener((View v) -> pictureDialog.show());
 
         runOnUiThread(() -> {
+            mainToast = new Toast(this);
             findViewById(R.id.progressBar).setVisibility(View.GONE);
             setContentView(view);
         });
@@ -215,7 +217,7 @@ public class MainActivity extends AppCompatActivity {
                     try {
                         byte[] bytes = getBytes(getContentResolver().openInputStream(data.getData()));
                         img = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
-                        uploadImage(bytes);
+                        uploadImage(bytes, 0);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -228,7 +230,7 @@ public class MainActivity extends AppCompatActivity {
                     try {
                         byte[] bytes = getBytes(getContentResolver().openInputStream(Uri.fromFile(imgFile)));
                         img = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
-                        uploadImage(bytes);
+                        uploadImage(bytes, 0);
                     } catch (Exception ex) {
                         ex.printStackTrace();
                     }
@@ -274,8 +276,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    private void uploadImage(byte[] imageBytes) {
-        runOnUiThread(() -> loading.setVisibility(View.VISIBLE));
+    private void uploadImage(byte[] imageBytes, int serverIndex) {
+        runOnUiThread(() -> {
+            loading.setVisibility(View.VISIBLE);
+            mainToast.cancel();
+            mainToast = Toasty.info(this, "Sending request to:\n" + serverList.get(serverIndex), Toast.LENGTH_SHORT);
+            mainToast.show();
+        });
 
         OkHttpClient client = new OkHttpClient.Builder().connectTimeout(20, TimeUnit.SECONDS)
                 .writeTimeout(30, TimeUnit.SECONDS)
@@ -284,7 +291,7 @@ public class MainActivity extends AppCompatActivity {
                 .build();
 
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(server_address + ":" + port)
+                .baseUrl(serverList.get(serverIndex))
                 .addConverterFactory(ScalarsConverterFactory.create())
                 .client(client)
                 .build();
@@ -320,26 +327,43 @@ public class MainActivity extends AppCompatActivity {
 
                     });
                 } else {
-                    Toasty.error(MainActivity.this, "Server connection error. Try again", Toast.LENGTH_SHORT, true).show();
-                    loading.setVisibility(View.GONE);
+                    if (serverIndex == serverList.size() - 1) {
+                        runOnUiThread(() -> {
+                            mainToast.cancel();
+                            mainToast = Toasty.error(MainActivity.this, "Error connecting to all servers in list. Please, try again later or check the address.", Toast.LENGTH_SHORT, true);
+                            mainToast.show();
+                            loading.setVisibility(View.GONE);
+
+                        });
+                    } else {
+                        runOnUiThread(() -> {
+                            mainToast.cancel();
+                            mainToast = Toasty.error(MainActivity.this, "Error response from :\n" + serverList.get(serverIndex), Toast.LENGTH_SHORT, true);
+                            mainToast.show();
+                        });
+
+                        uploadImage(imageBytes, serverIndex + 1);
+                    }
                 }
             }
 
             @Override
             public void onFailure(@NonNull Call<String> call, @NonNull Throwable t) {
 
-                runOnUiThread(() -> {
-                            loading.setVisibility(View.GONE);
-                            Toasty.error(MainActivity.this, "Server connection error. Try again", Toast.LENGTH_SHORT, true).show();
-                        }
-                );
+                if (serverIndex == serverList.size() - 1) {
+                    Toasty.error(MainActivity.this, "Error connecting to all servers in list. Please, try again later or check the address.", Toast.LENGTH_SHORT, true).show();
+                    loading.setVisibility(View.GONE);
+                } else {
+                    Toasty.error(MainActivity.this, "Error connecting to :\n" + serverList.get(serverIndex), Toast.LENGTH_SHORT, true).show();
+                    uploadImage(imageBytes, serverIndex + 1);
+                }
             }
         });
     }
 
     @SuppressLint("CheckResult")
     public void parseFaces(String txt, Point screen_size) {
-        Log.i("RESULT",txt);
+        Log.i("RESULT", txt);
         String result = txt.replace("FACE", "");
         if (result.trim().isEmpty()) {
             addSeparator("No Faces<br>Detected");
